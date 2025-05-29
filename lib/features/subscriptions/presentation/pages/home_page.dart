@@ -4,9 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_theme.dart';
+import '../../../general/presentation/bloc/general_bloc.dart';
+import '../../../general/presentation/bloc/general_event.dart';
+import '../../../general/presentation/pages/general_tab.dart';
 import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
-import '../../../general/presentation/pages/general_tab.dart';
 import 'subscription_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,10 +24,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          getIt<SubscriptionBloc>()
-            ..add(const SubscriptionEvent.loadSubscriptions()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) =>
+              getIt<SubscriptionBloc>()
+                ..add(const SubscriptionEvent.loadSubscriptions()),
+        ),
+        BlocProvider(
+          create: (context) =>
+              getIt<GeneralBloc>()..add(const GeneralEvent.loadGeneral()),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(

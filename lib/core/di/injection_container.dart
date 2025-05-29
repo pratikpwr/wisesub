@@ -1,6 +1,12 @@
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../features/general/data/repositories/general_repository_impl.dart';
+import '../../features/general/domain/repositories/general_repository.dart';
+import '../../features/general/domain/usecases/get_monthly_spending.dart';
+import '../../features/general/domain/usecases/get_payment_history.dart';
+import '../../features/general/domain/usecases/get_upcoming_subscription_renewal.dart';
+import '../../features/general/presentation/bloc/general_bloc.dart';
 import '../../features/subscriptions/data/datasources/subscription_local_data_source.dart';
 import '../../features/subscriptions/data/models/category_model.dart';
 import '../../features/subscriptions/data/models/subscription_model.dart';
@@ -42,14 +48,24 @@ Future<void> initializeDependencies() async {
     () => SubscriptionRepositoryImpl(localDataSource: getIt()),
   );
 
-  // Use cases
+  // General Repository
+  getIt.registerLazySingleton<GeneralRepository>(
+    () => GeneralRepositoryImpl(getIt()),
+  );
+
+  // Subscription Use cases
   getIt.registerLazySingleton(() => GetSubscriptions(getIt()));
   getIt.registerLazySingleton(() => GetCategories(getIt()));
   getIt.registerLazySingleton(() => AddSubscription(getIt()));
   getIt.registerLazySingleton(() => AddCategory(getIt()));
   getIt.registerLazySingleton(() => DeleteSubscription(getIt()));
 
-  // BLoC
+  // General Use cases
+  getIt.registerLazySingleton(() => GetMonthlySpending(getIt()));
+  getIt.registerLazySingleton(() => GetUpcomingSubscriptionRenewal(getIt()));
+  getIt.registerLazySingleton(() => GetPaymentHistory(getIt()));
+
+  // BLoCs
   getIt.registerFactory(
     () => SubscriptionBloc(
       getSubscriptions: getIt(),
@@ -57,6 +73,14 @@ Future<void> initializeDependencies() async {
       addSubscription: getIt(),
       addCategory: getIt(),
       deleteSubscription: getIt(),
+    ),
+  );
+
+  getIt.registerFactory(
+    () => GeneralBloc(
+      getMonthlySpending: getIt(),
+      getUpcomingSubscriptionRenewal: getIt(),
+      getPaymentHistory: getIt(),
     ),
   );
 

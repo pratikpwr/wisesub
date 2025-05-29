@@ -6,8 +6,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_theme.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../subscriptions/domain/entities/subscription.dart';
-import '../../../subscriptions/presentation/bloc/subscription_bloc.dart';
-import '../../../subscriptions/presentation/bloc/subscription_state.dart';
+import '../../domain/entities/payment_history.dart';
+import '../bloc/general_bloc.dart';
+import '../bloc/general_event.dart';
+import '../bloc/general_state.dart';
 
 class GeneralTab extends StatelessWidget {
   const GeneralTab({super.key});
@@ -17,7 +19,7 @@ class GeneralTab extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+        child: BlocBuilder<GeneralBloc, GeneralState>(
           builder: (context, state) {
             return state.when(
               initial: () => Center(
@@ -29,15 +31,17 @@ class GeneralTab extends StatelessWidget {
               loading: () => Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
-              loaded: (subscriptions, categories, selectedCategoryId) {
+              loaded: (monthlySpending, upcomingSubscription, paymentHistory) {
                 return SingleChildScrollView(
                   child: Column(
                     children: [
-                      _buildSpendingSummary(subscriptions),
+                      _buildSpendingSummary(monthlySpending),
                       const SizedBox(height: 32),
-                      _buildUpcomingSubscriptions(subscriptions),
+                      if (upcomingSubscription != null)
+                        _buildUpcomingSubscription(upcomingSubscription),
                       const SizedBox(height: 32),
-                      _buildPaymentHistory(subscriptions),
+                      if (paymentHistory.isNotEmpty)
+                        _buildPaymentHistory(paymentHistory),
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -59,6 +63,15 @@ class GeneralTab extends StatelessWidget {
                       style: AppTextStyles.emptyStateSubtitle,
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<GeneralBloc>().add(
+                          const GeneralEvent.refreshGeneral(),
+                        );
+                      },
+                      child: const Text('Retry'),
+                    ),
                   ],
                 ),
               ),
@@ -69,17 +82,9 @@ class GeneralTab extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentHistory(List<Subscription> subscriptions) {
-    if (subscriptions.isEmpty) {
-      return const SizedBox();
-    }
-
-    // Get recent payments (simulate payment history)
-    final paymentHistory = _getPaymentHistory(subscriptions);
-
+  Widget _buildPaymentHistory(List<PaymentHistory> paymentHistory) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -110,7 +115,7 @@ class GeneralTab extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentHistoryItem(PaymentHistoryItem payment) {
+  Widget _buildPaymentHistoryItem(PaymentHistory payment) {
     final formatter = NumberFormat.currency(symbol: '\$ ', decimalDigits: 2);
 
     return Container(
@@ -180,19 +185,10 @@ class GeneralTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSpendingSummary(List<Subscription> subscriptions) {
-    final currentMonth = DateTime.now().month;
-    final currentYear = DateTime.now().year;
-    final monthlyTotal = _calculateMonthlySpending(subscriptions);
-    final previousMonthTotal = _calculatePreviousMonthSpending(subscriptions);
-    final percentageChange = _calculatePercentageChange(
-      previousMonthTotal,
-      monthlyTotal,
-    );
-
+  Widget _buildSpendingSummary(monthlySpending) {
     final formatter = NumberFormat.currency(symbol: '\$ ', decimalDigits: 2);
     final monthName = DateFormat.MMMM().format(
-      DateTime(currentYear, currentMonth),
+      DateTime(monthlySpending.year, monthlySpending.month),
     );
 
     return Container(
@@ -214,7 +210,7 @@ class GeneralTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                formatter.format(monthlyTotal),
+                formatter.format(monthlySpending.totalAmount),
                 style: AppTextTheme.getTextStyle(
                   fontSize: 64,
                   fontWeight: AppTextTheme.semiBold,
@@ -222,7 +218,7 @@ class GeneralTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              if (percentageChange != 0)
+              if (monthlySpending.percentageChange != 0)
                 Container(
                   margin: const EdgeInsets.only(top: 16),
                   padding: const EdgeInsets.symmetric(
@@ -230,13 +226,13 @@ class GeneralTab extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: percentageChange > 0
+                    color: monthlySpending.percentageChange > 0
                         ? AppColors.secondary
                         : AppColors.error,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${percentageChange > 0 ? '+' : ''}${percentageChange.toStringAsFixed(0)}%',
+                    '${monthlySpending.percentageChange > 0 ? '+' : ''}${monthlySpending.percentageChange.toStringAsFixed(0)}%',
                     style: AppTextTheme.getTextStyle(
                       fontSize: 12,
                       fontWeight: AppTextTheme.semiBold,
@@ -251,143 +247,111 @@ class GeneralTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSubscriptionCard(Subscription subscription) {
+  Widget _buildUpcomingSubscription(subscription) {
     final formatter = NumberFormat.currency(symbol: '\$ ', decimalDigits: 0);
     final nextPaymentDate = _getNextPaymentDate(subscription);
     final dayOfMonth = nextPaymentDate.day.toString().padLeft(2, '0');
     final monthOfYear = nextPaymentDate.month.toString().padLeft(2, '0');
 
     return Container(
-      height: 200,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: subscription.color.toColor(), // Spotify green color
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(25),
-          bottomLeft: Radius.circular(25),
-          topRight: Radius.circular(25),
-          bottomRight: Radius.circular(5),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 200,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          // color: subscription.color.toColor(),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25),
+            bottomLeft: Radius.circular(25),
+            topRight: Radius.circular(25),
+            bottomRight: Radius.circular(5),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: AppColors.iconPrimary,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      subscription.name.substring(0, 1).toUpperCase(),
+                      style: AppTextTheme.getTextStyle(
+                        fontSize: 32,
+                        fontWeight: AppTextTheme.semiBold,
+                        // color: subscription.color.toColor(),
+                      ),
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        subscription.name,
+                        style: AppTextTheme.getTextStyle(
+                          fontSize: 24,
+                          fontWeight: AppTextTheme.semiBold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Upcoming payment $dayOfMonth.$monthOfYear',
+                        style: AppTextTheme.getTextStyle(
+                          fontSize: 16,
+                          fontWeight: AppTextTheme.regular,
+                          color: AppColors.textSecondary,
+                          height: 1.43,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                Text(
+                  formatter.format(subscription.price),
+                  style: AppTextTheme.getTextStyle(
+                    fontSize: 30,
+                    fontWeight: AppTextTheme.bold,
+                    color: AppColors.textPrimary,
+                    height: 1.17,
+                  ),
+                ),
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: AppColors.iconPrimary,
                     shape: BoxShape.circle,
                   ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    subscription.name.substring(0, 1).toUpperCase(),
-                    style: AppTextTheme.getTextStyle(
-                      fontSize: 32,
-                      fontWeight: AppTextTheme.semiBold,
-                      color: subscription.color.toColor(),
-                    ),
+                  child: Icon(
+                    Icons.arrow_forward,
+                    color: AppColors.iconPrimaryContrast,
+                    size: 20,
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      subscription.name,
-                      style: AppTextTheme.getTextStyle(
-                        fontSize: 24,
-                        fontWeight: AppTextTheme.semiBold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Upcoming payment $dayOfMonth.$monthOfYear',
-                      style: AppTextTheme.getTextStyle(
-                        fontSize: 16,
-                        fontWeight: AppTextTheme.regular,
-                        color: AppColors.textSecondary,
-                        height: 1.43,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                formatter.format(subscription.price),
-                style: AppTextTheme.getTextStyle(
-                  fontSize: 30,
-                  fontWeight: AppTextTheme.bold,
-                  color: AppColors.textPrimary,
-                  height: 1.17,
-                ),
-              ),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.iconPrimary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.arrow_forward,
-                  color: AppColors.iconPrimaryContrast,
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildUpcomingSubscriptions(List<Subscription> subscriptions) {
-    if (subscriptions.isEmpty) {
-      return const SizedBox();
-    }
-
-    // Get the next upcoming subscription payment
-    final upcomingSubscription = _getNextUpcomingSubscription(subscriptions);
-
-    if (upcomingSubscription == null) {
-      return const SizedBox();
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: _buildSubscriptionCard(upcomingSubscription),
-    );
-  }
-
-  double _calculateMonthlySpending(List<Subscription> subscriptions) {
-    return subscriptions.fold(0.0, (total, subscription) {
-      return total + subscription.monthlyPrice;
-    });
-  }
-
-  double _calculatePercentageChange(double previous, double current) {
-    if (previous == 0) return 0;
-    return ((current - previous) / previous) * 100;
-  }
-
-  double _calculatePreviousMonthSpending(List<Subscription> subscriptions) {
-    // For demo purposes, assume 95% of current spending
-    final currentSpending = _calculateMonthlySpending(subscriptions);
-    return currentSpending * 0.95;
-  }
-
-  DateTime _getNextPaymentDate(Subscription subscription) {
+  DateTime _getNextPaymentDate(subscription) {
     final now = DateTime.now();
     final billingStartDate = subscription.billingStartDate;
 
@@ -433,90 +397,4 @@ class GeneralTab extends StatelessWidget {
     // Default fallback
     return now.add(const Duration(days: 30));
   }
-
-  Subscription? _getNextUpcomingSubscription(List<Subscription> subscriptions) {
-    if (subscriptions.isEmpty) return null;
-
-    final now = DateTime.now();
-    Subscription? nextSubscription;
-    DateTime? earliestDate;
-
-    for (final subscription in subscriptions) {
-      final nextPaymentDate = _getNextPaymentDate(subscription);
-
-      if (earliestDate == null || nextPaymentDate.isBefore(earliestDate)) {
-        earliestDate = nextPaymentDate;
-        nextSubscription = subscription;
-      }
-    }
-
-    return nextSubscription;
-  }
-
-  List<PaymentHistoryItem> _getPaymentHistory(
-    List<Subscription> subscriptions,
-  ) {
-    final history = <PaymentHistoryItem>[];
-    final now = DateTime.now();
-
-    // Generate some mock payment history for the last 30 days
-    for (final subscription in subscriptions) {
-      // Add a few recent payments for each subscription
-      for (int i = 1; i <= 3; i++) {
-        final paymentDate = now.subtract(
-          Duration(days: i * 7 + (subscriptions.indexOf(subscription) * 2)),
-        );
-        history.add(
-          PaymentHistoryItem(
-            subscription: subscription,
-            amount: subscription.price,
-            date: paymentDate,
-          ),
-        );
-      }
-    }
-
-    // Sort by date (most recent first)
-    history.sort((a, b) => b.date.compareTo(a.date));
-
-    return history.take(6).toList(); // Show only recent 6 payments
-  }
-
-  List<Subscription> _getUpcomingSubscriptions(
-    List<Subscription> subscriptions,
-  ) {
-    final now = DateTime.now();
-    final upcoming = <Subscription>[];
-
-    for (final subscription in subscriptions) {
-      final nextPayment = _getNextPaymentDate(subscription);
-      final daysDifference = nextPayment.difference(now).inDays;
-
-      // Show subscriptions with payments in the next 7 days
-      if (daysDifference >= 0 && daysDifference <= 7) {
-        upcoming.add(subscription);
-      }
-    }
-
-    // Sort by next payment date
-    upcoming.sort((a, b) {
-      final dateA = _getNextPaymentDate(a);
-      final dateB = _getNextPaymentDate(b);
-      return dateA.compareTo(dateB);
-    });
-
-    return upcoming.take(3).toList(); // Show only first 3
-  }
-}
-
-class PaymentHistoryItem {
-  final Subscription subscription;
-  final double amount;
-  final DateTime date;
-
-  PaymentHistoryItem({
-    required this.subscription,
-    required this.amount,
-    required this.date,
-  });
 }
