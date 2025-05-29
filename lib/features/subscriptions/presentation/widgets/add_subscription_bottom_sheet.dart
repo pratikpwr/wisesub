@@ -48,7 +48,7 @@ class _AddSubscriptionBottomSheetState
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.backgroundTertiary,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
@@ -58,302 +58,310 @@ class _AddSubscriptionBottomSheetState
           top: 20,
           bottom: MediaQuery.of(context).viewInsets.bottom + 20,
         ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.textQuaternary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Title
-              Text('Add a subscription', style: AppTextStyles.formTitle),
-              const SizedBox(height: 24),
-
-              // Service name input with suggestions
-              Text('Service name', style: AppTextStyles.inputLabel),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _nameController,
-                style: AppTextStyles.inputText,
-                decoration: InputDecoration(
-                  hintText: 'Enter service name',
-                  hintStyle: AppTextStyles.inputHint,
-                  filled: true,
-                  fillColor: AppColors.inputFill,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a service name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // Popular services
-              Text(
-                'Popular services',
-                style: AppTextTheme.getTextStyle(
-                  fontSize: 14,
-                  fontWeight: AppTextTheme.regular,
-                  color: AppColors.textSecondary,
-                  height: 1.43,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _popularServices.map((service) {
-                  return GestureDetector(
-                    onTap: () {
-                      _nameController.text = service;
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.backgroundTertiary,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(service, style: AppTextStyles.chipText),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textQuaternary,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-              // Price and billing cycle
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Price', style: AppTextStyles.inputLabel),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _priceController,
-                          keyboardType: TextInputType.number,
-                          style: AppTextStyles.inputText,
-                          decoration: InputDecoration(
-                            hintText: '9.99',
-                            hintStyle: AppTextStyles.inputHint,
-                            prefixText: '\$ ',
-                            prefixStyle: AppTextStyles.inputText,
-                            filled: true,
-                            fillColor: AppColors.inputFill,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Enter price';
-                            }
-                            if (double.tryParse(value) == null) {
-                              return 'Invalid price';
-                            }
-                            return null;
-                          },
+                // Title
+                Text('Add a subscription', style: AppTextStyles.formTitle),
+                const SizedBox(height: 24),
+
+                // Service name input with suggestions
+                Text('Service name', style: AppTextStyles.inputLabel),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _nameController,
+                  style: AppTextStyles.inputText,
+                  decoration: InputDecoration(
+                    hintText: 'Enter service name',
+                    hintStyle: AppTextStyles.inputHint,
+                    filled: true,
+                    fillColor: AppColors.inputFill,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a service name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // Popular services
+                Text(
+                  'Popular services',
+                  style: AppTextTheme.getTextStyle(
+                    fontSize: 14,
+                    fontWeight: AppTextTheme.regular,
+                    color: AppColors.textSecondary,
+                    height: 1.43,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _popularServices.map((service) {
+                    return GestureDetector(
+                      onTap: () {
+                        _nameController.text = service;
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Billing cycle', style: AppTextStyles.inputLabel),
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.inputFill,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DropdownButtonFormField<BillingCycle>(
-                            value: _selectedBillingCycle,
-                            dropdownColor: AppColors.inputFill,
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundTertiary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(service, style: AppTextStyles.chipText),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+
+                // Price and billing cycle
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Price', style: AppTextStyles.inputLabel),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _priceController,
+                            keyboardType: TextInputType.number,
                             style: AppTextStyles.inputText,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
+                            decoration: InputDecoration(
+                              hintText: '9.99',
+                              hintStyle: AppTextStyles.inputHint,
+                              prefixText: '\$ ',
+                              prefixStyle: AppTextStyles.inputText,
+                              filled: true,
+                              fillColor: AppColors.inputFill,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
                               ),
                             ),
-                            items: BillingCycle.values.map((cycle) {
-                              return DropdownMenuItem(
-                                value: cycle,
-                                child: Text(cycle.name.capitalize()),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedBillingCycle = value;
-                                });
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Enter price';
                               }
+                              if (double.tryParse(value) == null) {
+                                return 'Invalid price';
+                              }
+                              return null;
                             },
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Color picker
-              Text('Color theme', style: AppTextStyles.inputLabel),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _showColorPicker,
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppColors.inputFill,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: _selectedColor,
-                          shape: BoxShape.circle,
-                        ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Billing cycle',
+                            style: AppTextStyles.inputLabel,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.inputFill,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: DropdownButtonFormField<BillingCycle>(
+                              value: _selectedBillingCycle,
+                              dropdownColor: AppColors.inputFill,
+                              style: AppTextStyles.inputText,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                              ),
+                              items: BillingCycle.values.map((cycle) {
+                                return DropdownMenuItem(
+                                  value: cycle,
+                                  child: Text(cycle.name.capitalize()),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedBillingCycle = value;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        _selectedColor.toHex().toUpperCase(),
-                        style: AppTextStyles.inputText,
-                      ),
-                      const Spacer(),
-                      Icon(Icons.palette, color: AppColors.textTertiary),
-                      const SizedBox(width: 12),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Billing start date
-              Text('Billing start date', style: AppTextStyles.inputLabel),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _selectDate,
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppColors.inputFill,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      Icon(Icons.calendar_month, color: AppColors.textTertiary),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${_billingStartDate.day}/${_billingStartDate.month}/${_billingStartDate.year}',
-                        style: AppTextStyles.inputText,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Category selection
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Category', style: AppTextStyles.inputLabel),
-                  const SizedBox(height: 8),
-                  Container(
+                // Color picker
+                Text('Color theme', style: AppTextStyles.inputLabel),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _showColorPicker,
+                  child: Container(
+                    height: 50,
                     decoration: BoxDecoration(
                       color: AppColors.inputFill,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedCategoryId,
-                      dropdownColor: AppColors.inputFill,
-                      style: AppTextStyles.inputText,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: _selectedColor,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                        hintText: 'Select category',
-                        hintStyle: AppTextStyles.inputHint,
-                      ),
-                      items: widget.categories.map((category) {
-                        return DropdownMenuItem(
-                          value: category.id,
-                          child: Text(category.name),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedCategoryId = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Please select a category';
-                        }
-                        return null;
-                      },
+                        const SizedBox(width: 12),
+                        Text(
+                          _selectedColor.toHex().toUpperCase(),
+                          style: AppTextStyles.inputText,
+                        ),
+                        const Spacer(),
+                        Icon(Icons.palette, color: AppColors.textTertiary),
+                        const SizedBox(width: 12),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              // Add button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _addSubscription,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.textPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Add Subscription',
-                    style: AppTextStyles.buttonPrimary,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+
+                // Billing start date
+                Text('Billing start date', style: AppTextStyles.inputLabel),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _selectDate,
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppColors.inputFill,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.calendar_month,
+                          color: AppColors.textTertiary,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${_billingStartDate.day}/${_billingStartDate.month}/${_billingStartDate.year}',
+                          style: AppTextStyles.inputText,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Category selection
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Category', style: AppTextStyles.inputLabel),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.inputFill,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedCategoryId,
+                        dropdownColor: AppColors.inputFill,
+                        style: AppTextStyles.inputText,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
+                          hintText: 'Select category',
+                          hintStyle: AppTextStyles.inputHint,
+                        ),
+                        items: widget.categories.map((category) {
+                          return DropdownMenuItem(
+                            value: category.id,
+                            child: Text(category.name),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCategoryId = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Please select a category';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                // Add button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _addSubscription,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.textPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Add Subscription',
+                      style: AppTextStyles.buttonPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
