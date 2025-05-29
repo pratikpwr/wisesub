@@ -5,9 +5,9 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_theme.dart';
 import '../../../../core/utils/extensions.dart';
-import '../../domain/entities/subscription.dart';
-import '../bloc/subscription_bloc.dart';
-import '../bloc/subscription_state.dart';
+import '../../../subscriptions/domain/entities/subscription.dart';
+import '../../../subscriptions/presentation/bloc/subscription_bloc.dart';
+import '../../../subscriptions/presentation/bloc/subscription_state.dart';
 
 class GeneralTab extends StatelessWidget {
   const GeneralTab({super.key});

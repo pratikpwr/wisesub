@@ -5,6 +5,7 @@ import '../../domain/entities/category.dart';
 import '../../domain/entities/subscription.dart';
 import '../../domain/usecases/add_category.dart';
 import '../../domain/usecases/add_subscription.dart';
+import '../../domain/usecases/delete_subscription.dart';
 import '../../domain/usecases/get_categories.dart';
 import '../../domain/usecases/get_subscriptions.dart';
 import 'subscription_event.dart';
@@ -15,12 +16,14 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final GetCategories getCategories;
   final AddSubscription addSubscription;
   final AddCategory addCategory;
+  final DeleteSubscription deleteSubscription;
 
   SubscriptionBloc({
     required this.getSubscriptions,
     required this.getCategories,
     required this.addSubscription,
     required this.addCategory,
+    required this.deleteSubscription,
   }) : super(const SubscriptionState.initial()) {
     on<SubscriptionEvent>(_onSubscriptionEvent);
   }
@@ -56,6 +59,23 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     );
 
     // Reload subscriptions if successful
+    if (result.isRight()) {
+      await _loadSubscriptions(emit);
+    }
+  }
+
+  Future<void> _deleteSubscription(
+    String id,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    final result = await deleteSubscription(DeleteSubscriptionParams(id: id));
+
+    result.fold(
+      (failure) => emit(SubscriptionState.error(failure)),
+      (_) => null,
+    );
+
+    // Reload subscriptions if successful to refresh the list
     if (result.isRight()) {
       await _loadSubscriptions(emit);
     }
@@ -131,9 +151,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       updateSubscription: (subscription) async {
         // TODO: Implement update subscription
       },
-      deleteSubscription: (id) async {
-        // TODO: Implement delete subscription
-      },
+      deleteSubscription: (id) async => await _deleteSubscription(id, emit),
       updateCategory: (category) async {
         // TODO: Implement update category
       },

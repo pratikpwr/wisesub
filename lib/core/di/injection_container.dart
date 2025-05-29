@@ -8,6 +8,7 @@ import '../../features/subscriptions/data/repositories/subscription_repository_i
 import '../../features/subscriptions/domain/repositories/subscription_repository.dart';
 import '../../features/subscriptions/domain/usecases/add_category.dart';
 import '../../features/subscriptions/domain/usecases/add_subscription.dart';
+import '../../features/subscriptions/domain/usecases/delete_subscription.dart';
 import '../../features/subscriptions/domain/usecases/get_categories.dart';
 import '../../features/subscriptions/domain/usecases/get_subscriptions.dart';
 import '../../features/subscriptions/presentation/bloc/subscription_bloc.dart';
@@ -46,6 +47,7 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton(() => GetCategories(getIt()));
   getIt.registerLazySingleton(() => AddSubscription(getIt()));
   getIt.registerLazySingleton(() => AddCategory(getIt()));
+  getIt.registerLazySingleton(() => DeleteSubscription(getIt()));
 
   // BLoC
   getIt.registerFactory(
@@ -54,6 +56,7 @@ Future<void> initializeDependencies() async {
       getCategories: getIt(),
       addSubscription: getIt(),
       addCategory: getIt(),
+      deleteSubscription: getIt(),
     ),
   );
 

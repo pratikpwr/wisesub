@@ -268,7 +268,37 @@ class SubscriptionPageContent extends StatelessWidget {
                   child: SlideAnimation(
                     horizontalOffset: 50.0,
                     child: FadeInAnimation(
-                      child: _buildSubscriptionCard(filteredSubscriptions[i]),
+                      child: Dismissible(
+                        key: Key(filteredSubscriptions[i].id),
+                        direction: DismissDirection.endToStart,
+                        confirmDismiss: (direction) async {
+                          return await _showDeleteConfirmationDialog(
+                            context,
+                            filteredSubscriptions[i],
+                          );
+                        },
+                        onDismissed: (direction) {
+                          context.read<SubscriptionBloc>().add(
+                            SubscriptionEvent.deleteSubscription(
+                              filteredSubscriptions[i].id,
+                            ),
+                          );
+                        },
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 30),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade400,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        child: _buildSubscriptionCard(filteredSubscriptions[i]),
+                      ),
                     ),
                   ),
                 ),
@@ -310,31 +340,25 @@ class SubscriptionPageContent extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: AnimationLimiter(
                 child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // Build the overlapping cards using Transform.translate
-                      for (int i = 0; i < stackItems.length; i++)
-                        Transform.translate(
-                          offset: Offset(
-                            0,
-                            i == 0 ? 0 : -76.0 * i,
-                          ), // Overlap by 76px per card
-                          child: Container(
-                            margin: EdgeInsets.only(
-                              bottom: i == stackItems.length - 1
-                                  ? 20
-                                  : 0, // Add bottom padding to last item
-                            ),
+                  child: SizedBox(
+                    height: stackItems.isEmpty
+                        ? 200
+                        : 180 +
+                              (stackItems.length - 1) * 104.0 +
+                              20, // Calculate total height needed
+                    child: Stack(
+                      children: [
+                        for (int i = 0; i < stackItems.length; i++)
+                          Positioned(
+                            top:
+                                i *
+                                104.0, // Each card positioned 104px below the previous
+                            left: 0,
+                            right: 0,
                             child: stackItems[i],
                           ),
-                        ),
-                      // Add extra spacing at the bottom to account for the overlapping
-                      SizedBox(
-                        height: stackItems.length > 1
-                            ? 76.0 * (stackItems.length - 1)
-                            : 0,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -412,5 +436,72 @@ class SubscriptionPageContent extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<bool> _showDeleteConfirmationDialog(
+    BuildContext context,
+    Subscription subscription,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.backgroundSecondary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Delete Subscription',
+          style: AppTextTheme.getTextStyle(
+            fontSize: 20,
+            fontWeight: AppTextTheme.semiBold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${subscription.name}"? This action cannot be undone.',
+          style: AppTextTheme.getTextStyle(
+            fontSize: 16,
+            fontWeight: AppTextTheme.regular,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.textSecondary,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: Text(
+              'Cancel',
+              style: AppTextTheme.getTextStyle(
+                fontSize: 16,
+                fontWeight: AppTextTheme.medium,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+              backgroundColor: Colors.red.withOpacity(0.1),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              'Delete',
+              style: AppTextTheme.getTextStyle(
+                fontSize: 16,
+                fontWeight: AppTextTheme.medium,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 }

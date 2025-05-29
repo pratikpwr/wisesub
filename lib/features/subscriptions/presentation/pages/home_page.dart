@@ -6,7 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_theme.dart';
 import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
-import 'general_tab.dart';
+import '../../../general/presentation/pages/general_tab.dart';
 import 'subscription_page.dart';
 
 class HomePage extends StatefulWidget {
