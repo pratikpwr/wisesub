@@ -278,34 +278,30 @@ class SubscriptionPageContent extends StatelessWidget {
             if (filteredSubscriptions.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(20),
-                child: Stack(
-                  children: [
-                    Positioned(top: 0, left: 0, right: 0, child: stackItems[0]),
-                    if (subscriptions.isEmpty)
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 100),
-                            Icon(
-                              Icons.subscriptions,
-                              size: 64,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No subscriptions yet',
-                              style: AppTextStyles.emptyStateTitle,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Tap the + button to add your first subscription',
-                              style: AppTextStyles.emptyStateSubtitle,
-                            ),
-                          ],
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      stackItems[0],
+                      if (subscriptions.isEmpty) ...[
+                        const SizedBox(height: 100),
+                        Icon(
+                          Icons.subscriptions,
+                          size: 64,
+                          color: Colors.grey[600],
                         ),
-                      ),
-                  ],
+                        const SizedBox(height: 16),
+                        Text(
+                          'No subscriptions yet',
+                          style: AppTextStyles.emptyStateTitle,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap the + button to add your first subscription',
+                          style: AppTextStyles.emptyStateSubtitle,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               );
             }
@@ -313,16 +309,33 @@ class SubscriptionPageContent extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: AnimationLimiter(
-                child: Stack(
-                  children: List.generate(stackItems.length, (index) {
-                    double topOffset = index * 104.0;
-                    return Positioned(
-                      top: topOffset,
-                      left: 0,
-                      right: 0,
-                      child: stackItems[index],
-                    );
-                  }),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Build the overlapping cards using Transform.translate
+                      for (int i = 0; i < stackItems.length; i++)
+                        Transform.translate(
+                          offset: Offset(
+                            0,
+                            i == 0 ? 0 : -76.0 * i,
+                          ), // Overlap by 76px per card
+                          child: Container(
+                            margin: EdgeInsets.only(
+                              bottom: i == stackItems.length - 1
+                                  ? 20
+                                  : 0, // Add bottom padding to last item
+                            ),
+                            child: stackItems[i],
+                          ),
+                        ),
+                      // Add extra spacing at the bottom to account for the overlapping
+                      SizedBox(
+                        height: stackItems.length > 1
+                            ? 76.0 * (stackItems.length - 1)
+                            : 0,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
