@@ -17,6 +17,7 @@ import '../../features/subscriptions/domain/usecases/add_subscription.dart';
 import '../../features/subscriptions/domain/usecases/delete_subscription.dart';
 import '../../features/subscriptions/domain/usecases/get_categories.dart';
 import '../../features/subscriptions/domain/usecases/get_subscriptions.dart';
+import '../../features/subscriptions/domain/usecases/update_subscription.dart';
 import '../../features/subscriptions/presentation/bloc/subscription_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -59,6 +60,7 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton(() => AddSubscription(getIt()));
   getIt.registerLazySingleton(() => AddCategory(getIt()));
   getIt.registerLazySingleton(() => DeleteSubscription(getIt()));
+  getIt.registerLazySingleton(() => UpdateSubscription(getIt()));
 
   // General Use cases
   getIt.registerLazySingleton(() => GetMonthlySpending(getIt()));
@@ -73,6 +75,7 @@ Future<void> initializeDependencies() async {
       addSubscription: getIt(),
       addCategory: getIt(),
       deleteSubscription: getIt(),
+      updateSubscription: getIt(),
     ),
   );
 

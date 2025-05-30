@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wisesub/core/theme/theme.dart';
+import 'package:wisesub/core/utils/extensions.dart';
 
 import '../../domain/entities/category.dart';
 import '../../domain/entities/subscription.dart';
@@ -23,7 +25,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF1A1A1A),
+        color: AppColors.backgroundSecondary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
@@ -45,7 +47,7 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[600],
+                    color: AppColors.textSecondary,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -53,41 +55,54 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
               const SizedBox(height: 20),
 
               // Title
-              const Text(
+              Text(
                 'Add a category',
-                style: TextStyle(
-                  color: Colors.white,
+                style: AppTextTheme.getTextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: AppTextTheme.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 24),
 
               // Category name input
-              const Text(
+              Text(
                 'Enter a name',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: AppTextTheme.getTextStyle(
+                  fontSize: 16,
+                  color: AppColors.textPrimary,
+                  fontWeight: AppTextTheme.semiBold,
+                ),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _nameController,
-                style: const TextStyle(color: Colors.white),
+                style: AppTextTheme.getTextStyle(
+                  fontSize: 16,
+                  color: AppColors.textPrimary,
+                ),
                 decoration: InputDecoration(
-                  hintText: 'Entertainment',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
+                  hintText: 'e.g. Music',
+                  hintStyle: AppTextTheme.getTextStyle(
+                    fontSize: 16,
+                    color: AppColors.textTertiary,
+                  ),
                   filled: true,
-                  fillColor: Colors.grey[900],
+                  fillColor: AppColors.backgroundSecondary,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.blue, width: 1),
+                    borderSide: BorderSide(
+                      color: AppColors.textPrimary,
+                      width: 1,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.blue, width: 1),
+                    borderSide: BorderSide(color: AppColors.primary, width: 1),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                    borderSide: BorderSide(color: AppColors.primary, width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -100,9 +115,13 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
               const SizedBox(height: 24),
 
               // Subscriptions selection
-              const Text(
+              Text(
                 'Select subscriptions',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: AppTextTheme.getTextStyle(
+                  fontSize: 20,
+                  color: AppColors.textPrimary,
+                  fontWeight: AppTextTheme.semiBold,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -113,17 +132,13 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                       if (subscriptions.isEmpty) {
                         return Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[900],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'No subscriptions available.\nAdd some subscriptions first.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.grey,
+                              style: AppTextTheme.getTextStyle(
                                 fontSize: 14,
+                                color: AppColors.textTertiary,
                               ),
                             ),
                           ),
@@ -141,47 +156,51 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
                                 .contains(subscription.id);
 
                             return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
+                              margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
-                                color: Colors.grey[900],
+                                color: AppColors.backgroundSecondary,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: CheckboxListTile(
-                                value: isSelected,
-                                onChanged: (value) {
-                                  setState(() {
-                                    if (value == true) {
-                                      _selectedSubscriptionIds.add(
-                                        subscription.id,
-                                      );
-                                    } else {
-                                      _selectedSubscriptionIds.remove(
-                                        subscription.id,
-                                      );
-                                    }
-                                  });
-                                },
-                                title: Row(
-                                  children: [
-                                    _buildServiceIcon(subscription),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      subscription.name,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                      ),
+                              child: Row(
+                                children: [
+                                  _buildServiceIcon(subscription),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    subscription.name,
+                                    style: AppTextTheme.getTextStyle(
+                                      fontSize: 18,
+                                      color: AppColors.textPrimary,
+                                      fontWeight: AppTextTheme.semiBold,
                                     ),
-                                  ],
-                                ),
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                checkColor: Colors.white,
-                                activeColor: Colors.blue,
-                                side: BorderSide(color: Colors.grey[600]!),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        if (isSelected) {
+                                          _selectedSubscriptionIds.remove(
+                                            subscription.id,
+                                          );
+                                        } else {
+                                          _selectedSubscriptionIds.add(
+                                            subscription.id,
+                                          );
+                                        }
+                                      });
+                                    },
+                                    icon: isSelected
+                                        ? const Icon(
+                                            Icons.check_circle_rounded,
+                                            size: 32,
+                                            color: AppColors.primary,
+                                          )
+                                        : const Icon(
+                                            Icons.circle,
+                                            size: 32,
+                                            color: AppColors.surface,
+                                          ),
+                                  ),
+                                ],
                               ),
                             );
                           },
@@ -247,45 +266,22 @@ class _AddCategoryBottomSheetState extends State<AddCategoryBottomSheet> {
   }
 
   Widget _buildServiceIcon(Subscription subscription) {
-    IconData icon;
-    switch (subscription.name.toLowerCase()) {
-      case 'figma':
-        icon = Icons.palette;
-        break;
-      case 'spotify':
-      case 'apple music':
-        icon = Icons.music_note;
-        break;
-      case 'youtube':
-      case 'youtube premium':
-        icon = Icons.play_arrow;
-        break;
-      case 'playstation plus':
-        icon = Icons.gamepad;
-        break;
-      case 'netflix':
-      case 'hbo max':
-      case 'disney+':
-        icon = Icons.movie;
-        break;
-      case 'amazon prime':
-        icon = Icons.shopping_cart;
-        break;
-      case 'apple tv':
-        icon = Icons.tv;
-        break;
-      default:
-        icon = Icons.subscriptions;
-    }
-
     return Container(
-      width: 32,
-      height: 32,
+      width: 44,
+      height: 44,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.iconPrimary,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: Colors.grey[800], size: 18),
+      alignment: Alignment.center,
+      child: Text(
+        subscription.name.substring(0, 1).toUpperCase(),
+        style: AppTextTheme.getTextStyle(
+          fontSize: 24,
+          color: subscription.color.toColor(),
+          fontWeight: AppTextTheme.semiBold,
+        ),
+      ),
     );
   }
 }

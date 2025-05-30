@@ -62,4 +62,26 @@ class Subscription extends Equatable {
       return price * 12;
     }
   }
+
+  Subscription copyWith({
+    String? id,
+    String? name,
+    double? price,
+    BillingCycle? billingCycle,
+    String? color,
+    DateTime? billingStartDate,
+    String? categoryId,
+    DateTime? createdAt,
+  }) {
+    return Subscription(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      billingCycle: billingCycle ?? this.billingCycle,
+      color: color ?? this.color,
+      billingStartDate: billingStartDate ?? this.billingStartDate,
+      categoryId: categoryId ?? this.categoryId,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

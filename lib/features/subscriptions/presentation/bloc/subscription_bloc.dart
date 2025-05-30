@@ -8,6 +8,7 @@ import '../../domain/usecases/add_subscription.dart';
 import '../../domain/usecases/delete_subscription.dart';
 import '../../domain/usecases/get_categories.dart';
 import '../../domain/usecases/get_subscriptions.dart';
+import '../../domain/usecases/update_subscription.dart';
 import 'subscription_event.dart';
 import 'subscription_state.dart';
 
@@ -17,6 +18,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final AddSubscription addSubscription;
   final AddCategory addCategory;
   final DeleteSubscription deleteSubscription;
+  final UpdateSubscription updateSubscription;
 
   SubscriptionBloc({
     required this.getSubscriptions,
@@ -24,6 +26,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     required this.addSubscription,
     required this.addCategory,
     required this.deleteSubscription,
+    required this.updateSubscription,
   }) : super(const SubscriptionState.initial()) {
     on<SubscriptionEvent>(_onSubscriptionEvent);
   }
@@ -39,9 +42,30 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       (_) => null,
     );
 
-    // Reload categories if successful
+    // Update subscriptions to set their categoryId if successful
     if (result.isRight()) {
-      await _loadCategories(emit);
+      await state.whenOrNull(
+        loaded: (subscriptions, categories, selectedCategoryId) async {
+          // Update each subscription in the category to have the new categoryId
+          for (final subscriptionId in category.subscriptionIds) {
+            final subscription = subscriptions.firstWhere(
+              (sub) => sub.id == subscriptionId,
+              orElse: () => throw Exception('Subscription not found'),
+            );
+
+            final updatedSubscription = subscription.copyWith(
+              categoryId: category.id,
+            );
+
+            await updateSubscription(
+              UpdateSubscriptionParams(subscription: updatedSubscription),
+            );
+          }
+        },
+      );
+
+      // Reload both categories and subscriptions to reflect changes
+      await _loadSubscriptions(emit);
     }
   }
 
@@ -148,9 +172,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       filterByCategory: (categoryId) async {
         _filterByCategory(categoryId, emit);
       },
-      updateSubscription: (subscription) async {
-        // TODO: Implement update subscription
-      },
+      updateSubscription: (subscription) async =>
+          await _updateSubscription(subscription, emit),
       deleteSubscription: (id) async => await _deleteSubscription(id, emit),
       updateCategory: (category) async {
         // TODO: Implement update category
@@ -159,5 +182,24 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         // TODO: Implement delete category
       },
     );
+  }
+
+  Future<void> _updateSubscription(
+    Subscription subscription,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    final result = await updateSubscription(
+      UpdateSubscriptionParams(subscription: subscription),
+    );
+
+    result.fold(
+      (failure) => emit(SubscriptionState.error(failure)),
+      (_) => null,
+    );
+
+    // Reload subscriptions if successful
+    if (result.isRight()) {
+      await _loadSubscriptions(emit);
+    }
   }
 }
