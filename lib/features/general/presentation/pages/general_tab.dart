@@ -6,6 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_theme.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../subscriptions/domain/entities/subscription.dart';
+import '../../../subscriptions/presentation/bloc/subscription_bloc.dart';
+import '../../../subscriptions/presentation/bloc/subscription_state.dart';
 import '../../domain/entities/payment_history.dart';
 import '../bloc/general_bloc.dart';
 import '../bloc/general_event.dart';
@@ -19,64 +21,102 @@ class GeneralTab extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocBuilder<GeneralBloc, GeneralState>(
-          builder: (context, state) {
-            return state.when(
-              initial: () => Center(
-                child: Text(
-                  'Welcome! Add your first subscription.',
-                  style: AppTextStyles.emptyStateTitle,
-                ),
-              ),
-              loading: () => Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-              loaded: (monthlySpending, upcomingSubscription, paymentHistory) {
-                return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _buildSpendingSummary(monthlySpending),
-                      const SizedBox(height: 32),
-                      if (upcomingSubscription != null)
-                        _buildUpcomingSubscription(upcomingSubscription),
-                      const SizedBox(height: 32),
-                      if (paymentHistory.isNotEmpty)
-                        _buildPaymentHistory(paymentHistory),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+        child: BlocListener<SubscriptionBloc, SubscriptionState>(
+          listenWhen: (previous, current) {
+            // Only listen when subscription data actually changes, not just filtering
+            return previous.maybeWhen(
+              loaded: (prevSubscriptions, prevCategories, _) {
+                return current.maybeWhen(
+                  loaded: (currSubscriptions, currCategories, _) {
+                    // Refresh if subscription count changed or categories changed
+                    return prevSubscriptions.length !=
+                            currSubscriptions.length ||
+                        prevCategories.length != currCategories.length;
+                  },
+                  orElse: () => false,
                 );
               },
-              error: (failure) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: AppColors.error),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Something went wrong',
-                      style: AppTextStyles.errorText.copyWith(fontSize: 18),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      failure.message,
-                      style: AppTextStyles.emptyStateSubtitle,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<GeneralBloc>().add(
-                          const GeneralEvent.refreshGeneral(),
-                        );
-                      },
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
+              orElse: () => current.maybeWhen(
+                loaded: (_, __, ___) => true, // First time loading
+                orElse: () => false,
               ),
             );
           },
+          listener: (context, subscriptionState) {
+            // Refresh general data when subscriptions change
+            subscriptionState.maybeWhen(
+              loaded: (subscriptions, categories, selectedCategoryId) {
+                context.read<GeneralBloc>().add(
+                  const GeneralEvent.refreshGeneral(),
+                );
+              },
+              orElse: () {},
+            );
+          },
+          child: BlocBuilder<GeneralBloc, GeneralState>(
+            builder: (context, state) {
+              return state.when(
+                initial: () => Center(
+                  child: Text(
+                    'Welcome! Add your first subscription.',
+                    style: AppTextStyles.emptyStateTitle,
+                  ),
+                ),
+                loading: () => Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+                loaded:
+                    (monthlySpending, upcomingSubscription, paymentHistory) {
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildSpendingSummary(monthlySpending),
+                            const SizedBox(height: 32),
+                            if (upcomingSubscription != null)
+                              _buildUpcomingSubscription(upcomingSubscription),
+                            const SizedBox(height: 32),
+                            if (paymentHistory.isNotEmpty)
+                              _buildPaymentHistory(paymentHistory),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      );
+                    },
+                error: (failure) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Something went wrong',
+                        style: AppTextStyles.errorText.copyWith(fontSize: 18),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        failure.message,
+                        style: AppTextStyles.emptyStateSubtitle,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<GeneralBloc>().add(
+                            const GeneralEvent.refreshGeneral(),
+                          );
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -212,7 +252,7 @@ class GeneralTab extends StatelessWidget {
               Text(
                 formatter.format(monthlySpending.totalAmount),
                 style: AppTextTheme.getTextStyle(
-                  fontSize: 64,
+                  fontSize: 58,
                   fontWeight: AppTextTheme.semiBold,
                   color: AppColors.textPrimary,
                 ),
@@ -247,7 +287,7 @@ class GeneralTab extends StatelessWidget {
     );
   }
 
-  Widget _buildUpcomingSubscription(subscription) {
+  Widget _buildUpcomingSubscription(Subscription subscription) {
     final formatter = NumberFormat.currency(symbol: '\$ ', decimalDigits: 0);
     final nextPaymentDate = _getNextPaymentDate(subscription);
     final dayOfMonth = nextPaymentDate.day.toString().padLeft(2, '0');
@@ -259,7 +299,7 @@ class GeneralTab extends StatelessWidget {
         height: 200,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          // color: subscription.color.toColor(),
+          color: subscription.color.toColor(),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(25),
             bottomLeft: Radius.circular(25),
@@ -287,7 +327,7 @@ class GeneralTab extends StatelessWidget {
                       style: AppTextTheme.getTextStyle(
                         fontSize: 32,
                         fontWeight: AppTextTheme.semiBold,
-                        // color: subscription.color.toColor(),
+                        color: subscription.color.toColor(),
                       ),
                     ),
                   ),

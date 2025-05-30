@@ -83,21 +83,6 @@ class AppTextStyles {
     height: 1.17,
   );
 
-  static TextStyle get heroSubtitle => AppTextTheme.getTextStyle(
-    fontSize: 16,
-    fontWeight: AppTextTheme.regular,
-    color: AppColors.textTertiary,
-    height: 1.5,
-  );
-
-  // Hero text styles
-  static TextStyle get heroTitle => AppTextTheme.getTextStyle(
-    fontSize: 36,
-    fontWeight: AppTextTheme.bold,
-    color: AppColors.textPrimary,
-    height: 1.2,
-    letterSpacing: -0.5,
-  );
 
   static TextStyle get inputHint => AppTextTheme.getTextStyle(
     fontSize: 16,

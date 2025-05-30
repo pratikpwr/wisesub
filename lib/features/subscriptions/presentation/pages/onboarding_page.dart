@@ -45,7 +45,7 @@ class OnboardingPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 60),
+              const Spacer(flex: 3),
 
               // Main title
               AnimationConfiguration.staggeredList(
@@ -57,7 +57,13 @@ class OnboardingPage extends StatelessWidget {
                     child: Text(
                       'Manage all your\nsubscriptions',
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.heroTitle,
+                      style: AppTextTheme.getTextStyle(
+                        fontSize: 36,
+                        fontWeight: AppTextTheme.bold,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
+                        letterSpacing: -0.5,
+                      ),
                     ),
                   ),
                 ),
@@ -75,13 +81,18 @@ class OnboardingPage extends StatelessWidget {
                     child: Text(
                       'Keep regular expenses on hand\nand receive timely notifications of\nupcoming fees',
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.heroSubtitle,
+                      style: AppTextTheme.getTextStyle(
+                        fontSize: 18,
+                        fontWeight: AppTextTheme.regular,
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
                     ),
                   ),
                 ),
               ),
 
-              const Spacer(flex: 3),
+              const Spacer(flex: 1),
 
               // Get started button
               AnimationConfiguration.staggeredList(
