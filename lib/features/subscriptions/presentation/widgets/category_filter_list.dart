@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wisesub/core/theme/app_colors.dart';
 import 'package:wisesub/core/theme/app_text_theme.dart';
 
+import '../../domain/entities/category.dart';
 import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
 import '../bloc/subscription_state.dart';
 import 'add_category_bottom_sheet.dart';
+import 'edit_category_bottom_sheet.dart';
 
 class CategoryFilterList extends StatelessWidget {
   const CategoryFilterList({super.key});
@@ -29,6 +31,7 @@ class CategoryFilterList extends StatelessWidget {
                       itemBuilder: (context, index) {
                         if (index == 0) {
                           return _buildCategoryChip(
+                            context,
                             'All subs',
                             selectedCategoryId == null,
                             () {
@@ -36,12 +39,14 @@ class CategoryFilterList extends StatelessWidget {
                                 const SubscriptionEvent.filterByCategory(null),
                               );
                             },
+                            null, // No long press for "All subs"
                           );
                         } else if (index == categories.length + 1) {
                           return _buildAddCategoryButton(context);
                         } else {
                           final category = categories[index - 1];
                           return _buildCategoryChip(
+                            context,
                             category.name,
                             selectedCategoryId == category.id,
                             () {
@@ -49,6 +54,11 @@ class CategoryFilterList extends StatelessWidget {
                                 SubscriptionEvent.filterByCategory(category.id),
                               );
                             },
+                            () =>
+                                () => _showEditCategoryBottomSheet(
+                                  context,
+                                  category,
+                                ),
                           );
                         }
                       },
@@ -82,11 +92,18 @@ class CategoryFilterList extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryChip(String label, bool isSelected, VoidCallback onTap) {
+  Widget _buildCategoryChip(
+    BuildContext context,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+    VoidCallback? onLongPress,
+  ) {
     return Container(
       margin: const EdgeInsets.only(right: 12),
       child: GestureDetector(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -94,9 +111,27 @@ class CategoryFilterList extends StatelessWidget {
                 ? AppColors.primary
                 : AppColors.backgroundTertiary,
             borderRadius: BorderRadius.circular(25),
+            // Add subtle visual hint for editable categories
+            border: onLongPress != null
+                ? Border.all(
+                    color: AppColors.primary.withOpacity(0.3),
+                    width: 0.5,
+                  )
+                : null,
           ),
           alignment: Alignment.center,
-          child: Text(label, style: AppTextStyles.buttonSecondary),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: AppTextTheme.getTextStyle(
+                  fontSize: 14,
+                  fontWeight: AppTextTheme.semiBold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -110,6 +145,18 @@ class CategoryFilterList extends StatelessWidget {
       builder: (modalContext) => BlocProvider.value(
         value: context.read<SubscriptionBloc>(),
         child: const AddCategoryBottomSheet(),
+      ),
+    );
+  }
+
+  void _showEditCategoryBottomSheet(BuildContext context, Category category) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => BlocProvider.value(
+        value: context.read<SubscriptionBloc>(),
+        child: EditCategoryBottomSheet(category: category),
       ),
     );
   }

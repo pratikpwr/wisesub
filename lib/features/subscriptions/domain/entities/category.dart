@@ -15,4 +15,18 @@ class Category extends Equatable {
 
   @override
   List<Object> get props => [id, name, subscriptionIds, createdAt];
+
+  Category copyWith({
+    String? id,
+    String? name,
+    List<String>? subscriptionIds,
+    DateTime? createdAt,
+  }) {
+    return Category(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      subscriptionIds: subscriptionIds ?? this.subscriptionIds,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

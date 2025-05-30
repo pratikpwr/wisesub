@@ -21,7 +21,7 @@ class Subscription extends Equatable {
   final BillingCycle billingCycle;
   final String color;
   final DateTime billingStartDate;
-  final String categoryId;
+  final String? categoryId;
   final DateTime createdAt;
 
   const Subscription({
@@ -31,7 +31,7 @@ class Subscription extends Equatable {
     required this.billingCycle,
     required this.color,
     required this.billingStartDate,
-    required this.categoryId,
+    this.categoryId,
     required this.createdAt,
   });
 
@@ -51,7 +51,7 @@ class Subscription extends Equatable {
     billingCycle,
     color,
     billingStartDate,
-    categoryId,
+    categoryId ?? '',
     createdAt,
   ];
 

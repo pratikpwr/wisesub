@@ -298,7 +298,10 @@ class _AddSubscriptionBottomSheetState
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Category', style: AppTextStyles.inputLabel),
+                    Text(
+                      'Category (Optional)',
+                      style: AppTextStyles.inputLabel,
+                    ),
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
@@ -314,7 +317,7 @@ class _AddSubscriptionBottomSheetState
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                           ),
-                          hintText: 'Select category',
+                          hintText: 'Select category (optional)',
                           hintStyle: AppTextStyles.inputHint,
                         ),
                         items: widget.categories.map((category) {
@@ -327,12 +330,6 @@ class _AddSubscriptionBottomSheetState
                           setState(() {
                             _selectedCategoryId = value;
                           });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please select a category';
-                          }
-                          return null;
                         },
                       ),
                     ),
@@ -384,7 +381,7 @@ class _AddSubscriptionBottomSheetState
         billingCycle: _selectedBillingCycle,
         color: _selectedColor.toHex(),
         billingStartDate: _billingStartDate,
-        categoryId: _selectedCategoryId!,
+        categoryId: _selectedCategoryId ?? 'default_entertainment',
         createdAt: DateTime.now(),
       );
 

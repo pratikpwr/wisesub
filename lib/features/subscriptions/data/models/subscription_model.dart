@@ -25,7 +25,7 @@ class SubscriptionModel extends HiveObject {
   DateTime billingStartDate;
 
   @HiveField(6)
-  String categoryId;
+  String? categoryId; // Made optional
 
   @HiveField(7)
   DateTime createdAt;
@@ -37,7 +37,7 @@ class SubscriptionModel extends HiveObject {
     required this.billingCycle,
     required this.color,
     required this.billingStartDate,
-    required this.categoryId,
+    this.categoryId, // Made optional
     required this.createdAt,
   });
 

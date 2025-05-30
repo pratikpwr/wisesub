@@ -23,7 +23,7 @@ class SubscriptionModelAdapter extends TypeAdapter<SubscriptionModel> {
       billingCycle: fields[3] as String,
       color: fields[4] as String,
       billingStartDate: fields[5] as DateTime,
-      categoryId: fields[6] as String,
+      categoryId: fields[6] as String?,
       createdAt: fields[7] as DateTime,
     );
   }
